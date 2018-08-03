@@ -32,22 +32,22 @@ var (
 const (
 	ZPT_NAME         = "ZPT Token"
 	ZPT_SYMBOL       = "ZPT"
-	ZPT_DECIMALS     = 1
-	ZPT_TOTAL_SUPPLY = uint64(1000000000)
+	ZPT_DECIMALS     = 4
+	ZPT_TOTAL_SUPPLY = uint64(10000000000000)
 )
 
 // gala constants
 const (
 	GALA_NAME         = "GALA Token"
 	GALA_SYMBOL       = "GALA"
-	GALA_DECIMALS     = 9
-	GALA_TOTAL_SUPPLY = uint64(1000000000000000000)
+	GALA_DECIMALS     = 4
+	GALA_TOTAL_SUPPLY = uint64(1000000000000000)
 )
 
 // zpt/gala unbound model constants
 const UNBOUND_TIME_INTERVAL = uint32(31536000)
 
-var UNBOUND_GENERATION_AMOUNT = [18]uint64{5, 4, 3, 3, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}
+var UNBOUND_GENERATION_AMOUNT = [18]uint64{89, 89, 55, 55, 55, 34, 34, 34, 21, 21, 21, 13, 13, 13, 8, 8, 5, 5}
 
 // the end of unbound timestamp offset from genesis block's timestamp
 var UNBOUND_DEADLINE = (func() uint32 {

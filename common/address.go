@@ -56,10 +56,10 @@ func (self *Address) Deserialize(r io.Reader) error {
 
 // ToBase58 returns base58 encoded address string
 func (f *Address) ToBase58() string {
-	data := append([]byte{23}, f[:]...)
+	data := append([]byte{58}, f[:]...)
 	temp := sha256.Sum256(data)
-	temps := sha256.Sum256(temp[:])
-	data = append(data, temps[0:4]...)
+	//temps := sha256.Sum256(temp[:])
+	data = append(data, temp[0:4]...)
 
 	bi := new(big.Int).SetBytes(data).String()
 	encoded, _ := base58.BitcoinEncoding.Encode([]byte(bi))
@@ -102,7 +102,7 @@ func AddressFromBase58(encoded string) (Address, error) {
 	}
 
 	buf := x.Bytes()
-	if len(buf) != 1+ADDR_LEN+4 || buf[0] != byte(23) {
+	if len(buf) != 1+ADDR_LEN+4 || buf[0] != byte(58) {
 		return ADDRESS_EMPTY, errors.New("wrong encoded address")
 	}
 	ph, err := AddressParseFromBytes(buf[1:21])

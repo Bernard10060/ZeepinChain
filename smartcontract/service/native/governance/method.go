@@ -39,7 +39,7 @@ func registerCandidate(native *native.NativeService, flag string) error {
 	}
 	contract := native.ContextRef.CurrentContext().ContractAddress
 
-	//check auth of GID
+	//check auth of OntID
 	err := appCallVerifyToken(native, contract, params.Caller, REGISTER_CANDIDATE, uint64(params.KeyNo))
 	if err != nil {
 		return errors.NewDetailErr(err, errors.ErrNoCode, "appCallVerifyToken, verifyToken failed!")
@@ -107,28 +107,28 @@ func registerCandidate(native *native.NativeService, flag string) error {
 
 	switch flag {
 	case "transfer":
-		//zpt transfer
+		//ont transfer
 		err = appCallTransferZpt(native, params.Address, utils.GovernanceContractAddress, uint64(params.InitPos))
 		if err != nil {
-			return errors.NewDetailErr(err, errors.ErrNoCode, "appCallTransferZpt, zpt transfer error!")
+			return errors.NewDetailErr(err, errors.ErrNoCode, "appCallTransferZpt, ont transfer error!")
 		}
 
-		//gala transfer
+		//ong transfer
 		err = appCallTransferGala(native, params.Address, utils.GovernanceContractAddress, globalParam.CandidateFee)
 		if err != nil {
-			return errors.NewDetailErr(err, errors.ErrNoCode, "appCallTransferGala, gala transfer error!")
+			return errors.NewDetailErr(err, errors.ErrNoCode, "appCallTransferGala, ong transfer error!")
 		}
 	case "transferFrom":
-		//zpt transfer from
+		//ont transfer from
 		err = appCallTransferFromZpt(native, utils.GovernanceContractAddress, params.Address, utils.GovernanceContractAddress, uint64(params.InitPos))
 		if err != nil {
-			return errors.NewDetailErr(err, errors.ErrNoCode, "appCallTransferFromZpt, zpt transfer error!")
+			return errors.NewDetailErr(err, errors.ErrNoCode, "appCallTransferFromZpt, ont transfer error!")
 		}
 
-		//gala transfer from
+		//ong transfer from
 		err = appCallTransferFromGala(native, utils.GovernanceContractAddress, params.Address, utils.GovernanceContractAddress, globalParam.CandidateFee)
 		if err != nil {
-			return errors.NewDetailErr(err, errors.ErrNoCode, "appCallTransferFromGala, gala transfer error!")
+			return errors.NewDetailErr(err, errors.ErrNoCode, "appCallTransferFromGala, ong transfer error!")
 		}
 	}
 
@@ -184,7 +184,7 @@ func voteForPeer(native *native.NativeService, flag string) error {
 			return errors.NewErr("voteForPeer, peerPubkey is not in peerPoolMap!")
 		}
 
-		if peerPoolItem.Status != CandidateStatus && peerPoolItem.Status != ConsensusStatus {
+		if peerPoolItem.Status != CandidateStatus && peerPoolItem.Status != ConsensusStatus && peerPoolItem.Status != RegisterCandidateStatus {
 			return errors.NewErr("voteForPeer, peerPubkey is not candidate and can not be voted!")
 		}
 
@@ -212,16 +212,16 @@ func voteForPeer(native *native.NativeService, flag string) error {
 
 	switch flag {
 	case "transfer":
-		//zpt transfer
+		//ont transfer
 		err = appCallTransferZpt(native, params.Address, utils.GovernanceContractAddress, total)
 		if err != nil {
-			return errors.NewDetailErr(err, errors.ErrNoCode, "appCallTransferZpt, zpt transfer error!")
+			return errors.NewDetailErr(err, errors.ErrNoCode, "appCallTransferZpt, ont transfer error!")
 		}
 	case "transferFrom":
-		//zpt transfer from
+		//ont transfer from
 		err = appCallTransferFromZpt(native, utils.GovernanceContractAddress, params.Address, utils.GovernanceContractAddress, total)
 		if err != nil {
-			return errors.NewDetailErr(err, errors.ErrNoCode, "appCallTransferFromZpt, zpt transfer error!")
+			return errors.NewDetailErr(err, errors.ErrNoCode, "appCallTransferFromZpt, ont transfer error!")
 		}
 	}
 
@@ -285,10 +285,10 @@ func normalQuit(native *native.NativeService, contract common.Address, peerPoolI
 }
 
 func blackQuit(native *native.NativeService, contract common.Address, peerPoolItem *PeerPoolItem) error {
-	// zpt transfer to trigger unboundgala
+	// ont transfer to trigger unboundong
 	err := appCallTransferZpt(native, utils.GovernanceContractAddress, utils.GovernanceContractAddress, peerPoolItem.InitPos)
 	if err != nil {
-		return errors.NewDetailErr(err, errors.ErrNoCode, "appCallTransferZpt, zpt transfer error!")
+		return errors.NewDetailErr(err, errors.ErrNoCode, "appCallTransferZpt, ont transfer error!")
 	}
 
 	//update total stake
@@ -527,7 +527,7 @@ func depositTotalStake(native *native.NativeService, contract common.Address, ad
 	amount := utils.CalcUnbindGala(preStake, preTimeOffset, timeOffset)
 	err = appCallTransferFromGala(native, utils.GovernanceContractAddress, utils.ZptContractAddress, totalStake.Address, amount)
 	if err != nil {
-		return errors.NewDetailErr(err, errors.ErrNoCode, "appCallTransferFromGala, transfer from gala error!")
+		return errors.NewDetailErr(err, errors.ErrNoCode, "appCallTransferFromGala, transfer from ong error!")
 	}
 
 	totalStake.Stake = preStake + stake
@@ -546,7 +546,7 @@ func withdrawTotalStake(native *native.NativeService, contract common.Address, a
 		return errors.NewDetailErr(err, errors.ErrNoCode, "getTotalStake, get totalStake error!")
 	}
 	if totalStake.Stake < stake {
-		return errors.NewErr("withdraw, zpt deposit is not enough!")
+		return errors.NewErr("withdraw, ont deposit is not enough!")
 	}
 
 	preStake := totalStake.Stake
@@ -556,7 +556,7 @@ func withdrawTotalStake(native *native.NativeService, contract common.Address, a
 	amount := utils.CalcUnbindGala(preStake, preTimeOffset, timeOffset)
 	err = appCallTransferFromGala(native, utils.GovernanceContractAddress, utils.ZptContractAddress, totalStake.Address, amount)
 	if err != nil {
-		return errors.NewDetailErr(err, errors.ErrNoCode, "appCallTransferFromGala, transfer from gala error!")
+		return errors.NewDetailErr(err, errors.ErrNoCode, "appCallTransferFromGala, transfer from ong error!")
 	}
 
 	totalStake.Stake = preStake - stake
@@ -609,15 +609,15 @@ func withdrawPenaltyStake(native *native.NativeService, contract common.Address,
 
 	amount := utils.CalcUnbindGala(preStake, preTimeOffset, timeOffset)
 
-	//zpt transfer
+	//ont transfer
 	err = appCallTransferZpt(native, utils.GovernanceContractAddress, address, preStake)
 	if err != nil {
-		return errors.NewDetailErr(err, errors.ErrNoCode, "appCallTransferZpt, zpt transfer error!")
+		return errors.NewDetailErr(err, errors.ErrNoCode, "appCallTransferZpt, ont transfer error!")
 	}
-	//gala approve
+	//ong approve
 	err = appCallTransferFromGala(native, utils.GovernanceContractAddress, utils.ZptContractAddress, address, amount+preAmount)
 	if err != nil {
-		return errors.NewDetailErr(err, errors.ErrNoCode, "appCallTransferFromGala, transfer from gala error!")
+		return errors.NewDetailErr(err, errors.ErrNoCode, "appCallTransferFromGala, transfer from ong error!")
 	}
 
 	peerPubkeyPrefix, err := hex.DecodeString(peerPubkey)
@@ -676,6 +676,13 @@ func executeCommitDpos(native *native.NativeService, contract common.Address, co
 		if peerPoolItem.Status == QuitConsensusStatus {
 			peerPoolItem.Status = QuitingStatus
 			peerPoolMap.PeerPoolMap[peerPoolItem.PeerPubkey] = peerPoolItem
+		}
+		if peerPoolItem.Status == QuitCandidateStatus {
+			err = normalQuit(native, contract, peerPoolItem)
+			if err != nil {
+				return errors.NewDetailErr(err, errors.ErrNoCode, "normalQuit, normalQuit error!")
+			}
+			delete(peerPoolMap.PeerPoolMap, peerPoolItem.PeerPubkey)
 		}
 
 		if peerPoolItem.Status == CandidateStatus || peerPoolItem.Status == ConsensusStatus {
@@ -772,7 +779,7 @@ func executeCommitDpos(native *native.NativeService, contract common.Address, co
 func executeSplit(native *native.NativeService, contract common.Address, peerPoolMap *PeerPoolMap) error {
 	balance, err := getGalaBalance(native, utils.GovernanceContractAddress)
 	if err != nil {
-		return errors.NewDetailErr(err, errors.ErrNoCode, "executeSplit, getGalaBalance error!")
+		return errors.NewDetailErr(err, errors.ErrNoCode, "executeSplit, getOngBalance error!")
 	}
 	//get globalParam
 	globalParam, err := getGlobalParam(native, contract)
@@ -834,11 +841,13 @@ func executeSplit(native *native.NativeService, contract common.Address, peerPoo
 
 	//fee split of consensus peer
 	for i := int(config.K) - 1; i >= 0; i-- {
-		nodeAmount := balance * uint64(globalParam.A) / 100 * peersCandidate[i].S / sumS
+		distributedBalance := balance * uint64(globalParam.A) / 100
+		proportion := peersCandidate[i].S / sumS
+		nodeAmount := distributedBalance * proportion
 		address := peersCandidate[i].Address
 		err = appCallTransferGala(native, utils.GovernanceContractAddress, address, nodeAmount)
 		if err != nil {
-			return errors.NewDetailErr(err, errors.ErrNoCode, "executeSplit, gala transfer error!")
+			return errors.NewDetailErr(err, errors.ErrNoCode, "executeSplit, ong transfer error!")
 		}
 	}
 
@@ -852,11 +861,13 @@ func executeSplit(native *native.NativeService, contract common.Address, peerPoo
 		return nil
 	}
 	for i := int(config.K); i < len(peersCandidate); i++ {
-		nodeAmount := balance * uint64(globalParam.B) / 100 * peersCandidate[i].Stake / sum
+		distributedBalance := balance * uint64(globalParam.B) / 100
+		proportion := peersCandidate[i].S / sumS
+		nodeAmount := distributedBalance * proportion
 		address := peersCandidate[i].Address
 		err = appCallTransferGala(native, utils.GovernanceContractAddress, address, nodeAmount)
 		if err != nil {
-			return errors.NewDetailErr(err, errors.ErrNoCode, "executeSplit, gala transfer error!")
+			return errors.NewDetailErr(err, errors.ErrNoCode, "executeSplit, ong transfer error!")
 		}
 	}
 

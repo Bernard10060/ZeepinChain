@@ -22,16 +22,17 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"github.com/mileschao/ZeepinChain/common/constants"
 	"io/ioutil"
 	"math"
 	"math/big"
 	"strings"
+
+	"github.com/mileschao/ZeepinChain/common/constants"
 )
 
 const (
-	PRECISION_GALA = 9
-	PRECISION_ZPT = 0
+	PRECISION_GALA = 4
+	PRECISION_ZPT  = 4
 )
 
 //FormatAssetAmount return asset amount multiplied by math.Pow10(precision) to raw float string
