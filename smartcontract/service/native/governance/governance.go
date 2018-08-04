@@ -46,6 +46,7 @@ const (
 	ConsensusStatus
 	QuitConsensusStatus
 	QuitingStatus
+	QuitCandidateStatus
 	BlackStatus
 )
 
@@ -70,7 +71,7 @@ const (
 	UPDATE_SPLIT_CURVE               = "updateSplitCurve"
 	CALL_SPLIT                       = "callSplit"
 	TRANSFER_PENALTY                 = "transferPenalty"
-	WITHDRAW_GALA                     = "withdrawGala"
+	WITHDRAW_GALA                    = "withdrawGala"
 
 	//key prefix
 	GLOBAL_PARAM    = "globalParam"
@@ -89,18 +90,19 @@ const (
 	PRECISE = 1000000
 )
 
-// candidate fee must >= 1 GALA
+// candidate fee must >= 1 Gala
 var MinCandidateFee = uint64(math.Pow(10, constants.GALA_DECIMALS))
 
 var Xi = []uint32{
-	0, 100000, 200000, 300000, 400000, 500000, 600000, 700000, 800000, 900000, 1000000, 1100000, 1200000, 1300000, 1400000,
-	1500000, 1600000, 1700000, 1800000, 1900000, 2000000, 2100000, 2200000, 2300000, 2400000, 2500000, 2600000, 2700000,
-	2800000, 2900000, 3000000, 3100000, 3200000, 3300000, 3400000, 3500000, 3600000, 3700000, 3800000, 3900000, 4000000,
-	4100000, 4200000, 4300000, 4400000, 4500000, 4600000, 4700000, 4800000, 4900000, 5000000, 5100000, 5200000, 5300000,
-	5400000, 5500000, 5600000, 5700000, 5800000, 5900000, 6000000, 6100000, 6200000, 6300000, 6400000, 6500000, 6600000,
-	6700000, 6800000, 6900000, 7000000, 7100000, 7200000, 7300000, 7400000, 7500000, 7600000, 7700000, 7800000, 7900000,
-	8000000, 8100000, 8200000, 8300000, 8400000, 8500000, 8600000, 8700000, 8800000, 8900000, 9000000, 9100000, 9200000,
-	9300000, 9400000, 9500000, 9600000, 9700000, 9800000, 9900000, 10000000,
+	0, 400000, 800000, 1200000, 1600000, 2000000, 2400000, 2800000, 3200000, 3600000, 4000000, 4400000, 4800000,
+	5200000, 5600000, 6000000, 6400000, 6800000, 7200000, 7600000, 8000000, 8150000, 8300000, 8450000, 8600000,
+	8750000, 8900000, 9050000, 9200000, 9350000, 9500000, 9650000, 9800000, 9950000, 10100000, 10250000, 10400000,
+	10550000, 10700000, 10850000, 11000000, 11150000, 11300000, 11450000, 11600000, 11750000, 11900000, 12050000,
+	12200000, 12350000, 12500000, 12650000, 12800000, 12950000, 13100000, 13250000, 13400000, 13550000, 13700000,
+	13850000, 14000000, 14150000, 14300000, 14450000, 14600000, 14750000, 14900000, 15050000, 15200000, 15350000,
+	15500000, 15650000, 15800000, 15950000, 16100000, 16250000, 16400000, 16550000, 16700000, 16850000, 17000000,
+	17150000, 17300000, 17450000, 17600000, 17750000, 17900000, 18050000, 18200000, 18350000, 18500000, 18650000,
+	18800000, 18950000, 19100000, 19250000, 19400000, 19550000, 19700000, 19850000, 20000000,
 }
 
 //Init governance contract address
@@ -133,7 +135,7 @@ func RegisterGovernanceContract(native *native.NativeService) {
 	native.Register(TRANSFER_PENALTY, TransferPenalty)
 }
 
-//Init governance contract, include vbft config, global param and gid admin.
+//Init governance contract, include vbft config, global param and Gid admin.
 func InitConfig(native *native.NativeService) ([]byte, error) {
 	configuration := new(config.VBFTConfig)
 	buf, err := serialization.ReadVarBytes(bytes.NewBuffer(native.Input))
@@ -166,8 +168,8 @@ func InitConfig(native *native.NativeService) ([]byte, error) {
 		MinInitStake: configuration.MinInitStake,
 		CandidateNum: 7 * 7,
 		PosLimit:     20,
-		A:            50,
-		B:            50,
+		A:            40,
+		B:            60,
 		Yita:         5,
 		Penalty:      5,
 	}
@@ -287,7 +289,7 @@ func InitConfig(native *native.NativeService) ([]byte, error) {
 }
 
 //Register a candidate node, used by users.
-//Users can register a candidate node with a authorized gid.
+//Users can register a candidate node with a authorized Gid.
 //Candidate node can be voted and become consensus node according to their pos.
 //Candidate node can get gala bonus according to their pos.
 func RegisterCandidate(native *native.NativeService) ([]byte, error) {
@@ -299,7 +301,7 @@ func RegisterCandidate(native *native.NativeService) ([]byte, error) {
 }
 
 //Register a candidate node, used by contracts.
-//Contracts can register a candidate node with a authorized gid after approving zpt to governance contract before invoke this function.
+//Contracts can register a candidate node with a authorized Gid after approving ZPT to governance contract before invoke this function.
 //Candidate node can be voted and become consensus node according to their pos.
 //Candidate node can get gala bonus according to their pos.
 func RegisterCandidateTransferFrom(native *native.NativeService) ([]byte, error) {
@@ -356,19 +358,22 @@ func UnRegisterCandidate(native *native.NativeService) ([]byte, error) {
 	voteInfo := &VoteInfo{
 		PeerPubkey:          peerPoolItem.PeerPubkey,
 		Address:             peerPoolItem.Address,
-		WithdrawUnfreezePos: peerPoolItem.InitPos,
+		WithdrawUnfreezePos: 0,
 	}
 	err = putVoteInfo(native, contract, voteInfo)
 	if err != nil {
 		return utils.BYTE_FALSE, errors.NewDetailErr(err, errors.ErrNoCode, "putVoteInfo, put voteInfo error!")
 	}
 
-	delete(peerPoolMap.PeerPoolMap, params.PeerPubkey)
+	//change peerPool status
+
+	peerPoolItem.Status = QuitCandidateStatus
+
+	peerPoolMap.PeerPoolMap[params.PeerPubkey] = peerPoolItem
 	err = putPeerPoolMap(native, contract, view, peerPoolMap)
 	if err != nil {
 		return utils.BYTE_FALSE, errors.NewDetailErr(err, errors.ErrNoCode, "putPeerPoolMap, put peerPoolMap error!")
 	}
-
 	return utils.BYTE_TRUE, nil
 }
 
@@ -533,14 +538,16 @@ func RejectCandidate(native *native.NativeService) ([]byte, error) {
 	if err != nil {
 		return utils.BYTE_FALSE, errors.NewDetailErr(err, errors.ErrNoCode, "getVoteInfo, get voteInfo error!")
 	}
-	voteInfo.WithdrawUnfreezePos = voteInfo.WithdrawUnfreezePos + peerPoolItem.InitPos
+	//voteInfo.WithdrawUnfreezePos = voteInfo.WithdrawUnfreezePos + peerPoolItem.InitPos
 	err = putVoteInfo(native, contract, voteInfo)
 	if err != nil {
 		return utils.BYTE_FALSE, errors.NewDetailErr(err, errors.ErrNoCode, "putVoteInfo, put voteInfo error!")
 	}
 
 	//remove peerPubkey from peerPool
-	delete(peerPoolMap.PeerPoolMap, params.PeerPubkey)
+	peerPoolItem.Status = QuitCandidateStatus
+
+	peerPoolMap.PeerPoolMap[params.PeerPubkey] = peerPoolItem
 	err = putPeerPoolMap(native, contract, view, peerPoolMap)
 	if err != nil {
 		return utils.BYTE_FALSE, errors.NewDetailErr(err, errors.ErrNoCode, "putPeerPoolMap, put peerPoolMap error!")
@@ -841,6 +848,18 @@ func UnVoteForPeer(native *native.NativeService) ([]byte, error) {
 				voteInfo.WithdrawFreezePos = voteInfo.WithdrawFreezePos + uint64(pos) - voteInfo.NewPos
 				peerPoolItem.TotalPos = peerPoolItem.TotalPos - uint64(pos)
 			}
+			if peerPoolItem.Status == RegisterCandidateStatus {
+				if voteInfo.FreezePos < (uint64(pos) - voteInfo.NewPos) {
+					return utils.BYTE_FALSE, errors.NewErr("unVoteForPeer, your pos of this peerPubkey is not enough!")
+				}
+				freezePos := voteInfo.FreezePos + voteInfo.NewPos - uint64(pos)
+				newPos := voteInfo.NewPos
+				voteInfo.NewPos = 0
+				voteInfo.WithdrawUnfreezePos = voteInfo.WithdrawUnfreezePos + newPos
+				voteInfo.FreezePos = freezePos
+				voteInfo.WithdrawFreezePos = voteInfo.WithdrawFreezePos + uint64(pos) - voteInfo.NewPos
+				peerPoolItem.TotalPos = peerPoolItem.TotalPos - uint64(pos)
+			}
 		} else {
 			temp := voteInfo.NewPos - uint64(pos)
 			voteInfo.NewPos = temp
@@ -909,10 +928,10 @@ func Withdraw(native *native.NativeService) ([]byte, error) {
 		}
 	}
 
-	//zpt transfer
+	//ZPT transfer
 	err = appCallTransferZpt(native, utils.GovernanceContractAddress, address, total)
 	if err != nil {
-		return utils.BYTE_FALSE, errors.NewDetailErr(err, errors.ErrNoCode, "appCallTransferZpt, zpt transfer error!")
+		return utils.BYTE_FALSE, errors.NewDetailErr(err, errors.ErrNoCode, "appCallTransferZpt, ZPT transfer error!")
 	}
 
 	//update total stake
@@ -1207,10 +1226,10 @@ func WithdrawGala(native *native.NativeService) ([]byte, error) {
 		return utils.BYTE_FALSE, errors.NewDetailErr(err, errors.ErrNoCode, "withdrawGala, checkWitness error!")
 	}
 
-	// zpt transfer to trigger unboundgala
+	// ZPT transfer to trigger unboundGala
 	err = appCallTransferZpt(native, utils.GovernanceContractAddress, utils.GovernanceContractAddress, 1)
 	if err != nil {
-		return utils.BYTE_FALSE, errors.NewDetailErr(err, errors.ErrNoCode, "appCallTransferZpt, zpt transfer error!")
+		return utils.BYTE_FALSE, errors.NewDetailErr(err, errors.ErrNoCode, "appCallTransferZpt, ZPT transfer error!")
 	}
 
 	totalStake, err := getTotalStake(native, contract, param.Address)
@@ -1224,7 +1243,7 @@ func WithdrawGala(native *native.NativeService) ([]byte, error) {
 	amount := utils.CalcUnbindGala(totalStake.Stake, preTimeOffset, timeOffset)
 	err = appCallTransferFromGala(native, utils.GovernanceContractAddress, utils.ZptContractAddress, totalStake.Address, amount)
 	if err != nil {
-		return utils.BYTE_FALSE, errors.NewDetailErr(err, errors.ErrNoCode, "appCallTransferFromGala, transfer from gala error!")
+		return utils.BYTE_FALSE, errors.NewDetailErr(err, errors.ErrNoCode, "appCallTransferFromGala, transfer from Gala error!")
 	}
 
 	totalStake.TimeOffset = timeOffset

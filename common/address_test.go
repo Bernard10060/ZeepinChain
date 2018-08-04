@@ -31,8 +31,8 @@ func TestAddressFromBase58(t *testing.T) {
 	rand.Read(addr[:])
 
 	base58 := addr.ToBase58()
-	b1 := string(append([]byte{'X'}, []byte(base58)...))
-	_, err := AddressFromBase58(b1)
+	//b1 := string(append([]byte{'X'}, []byte(base58)...))
+	_, err := AddressFromBase58(base58)
 
 	assert.NotNil(t, err)
 

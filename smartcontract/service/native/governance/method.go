@@ -184,7 +184,7 @@ func voteForPeer(native *native.NativeService, flag string) error {
 			return errors.NewErr("voteForPeer, peerPubkey is not in peerPoolMap!")
 		}
 
-		if peerPoolItem.Status != CandidateStatus && peerPoolItem.Status != ConsensusStatus {
+		if peerPoolItem.Status != CandidateStatus && peerPoolItem.Status != ConsensusStatus && peerPoolItem.Status != RegisterCandidateStatus {
 			return errors.NewErr("voteForPeer, peerPubkey is not candidate and can not be voted!")
 		}
 
@@ -285,7 +285,7 @@ func normalQuit(native *native.NativeService, contract common.Address, peerPoolI
 }
 
 func blackQuit(native *native.NativeService, contract common.Address, peerPoolItem *PeerPoolItem) error {
-	// zpt transfer to trigger unboundgala
+	// zpt transfer to trigger unboundGala
 	err := appCallTransferZpt(native, utils.GovernanceContractAddress, utils.GovernanceContractAddress, peerPoolItem.InitPos)
 	if err != nil {
 		return errors.NewDetailErr(err, errors.ErrNoCode, "appCallTransferZpt, zpt transfer error!")
@@ -677,6 +677,13 @@ func executeCommitDpos(native *native.NativeService, contract common.Address, co
 			peerPoolItem.Status = QuitingStatus
 			peerPoolMap.PeerPoolMap[peerPoolItem.PeerPubkey] = peerPoolItem
 		}
+		if peerPoolItem.Status == QuitCandidateStatus {
+			err = normalQuit(native, contract, peerPoolItem)
+			if err != nil {
+				return errors.NewDetailErr(err, errors.ErrNoCode, "normalQuit, normalQuit error!")
+			}
+			delete(peerPoolMap.PeerPoolMap, peerPoolItem.PeerPubkey)
+		}
 
 		if peerPoolItem.Status == CandidateStatus || peerPoolItem.Status == ConsensusStatus {
 			stake := peerPoolItem.TotalPos + peerPoolItem.InitPos
@@ -834,7 +841,9 @@ func executeSplit(native *native.NativeService, contract common.Address, peerPoo
 
 	//fee split of consensus peer
 	for i := int(config.K) - 1; i >= 0; i-- {
-		nodeAmount := balance * uint64(globalParam.A) / 100 * peersCandidate[i].S / sumS
+		distributedBalance := balance * uint64(globalParam.A) / 100
+		proportion := peersCandidate[i].S / sumS
+		nodeAmount := distributedBalance * proportion
 		address := peersCandidate[i].Address
 		err = appCallTransferGala(native, utils.GovernanceContractAddress, address, nodeAmount)
 		if err != nil {
@@ -852,7 +861,9 @@ func executeSplit(native *native.NativeService, contract common.Address, peerPoo
 		return nil
 	}
 	for i := int(config.K); i < len(peersCandidate); i++ {
-		nodeAmount := balance * uint64(globalParam.B) / 100 * peersCandidate[i].Stake / sum
+		distributedBalance := balance * uint64(globalParam.B) / 100
+		proportion := peersCandidate[i].S / sumS
+		nodeAmount := distributedBalance * proportion
 		address := peersCandidate[i].Address
 		err = appCallTransferGala(native, utils.GovernanceContractAddress, address, nodeAmount)
 		if err != nil {
