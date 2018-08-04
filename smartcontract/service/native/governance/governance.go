@@ -71,7 +71,7 @@ const (
 	UPDATE_SPLIT_CURVE               = "updateSplitCurve"
 	CALL_SPLIT                       = "callSplit"
 	TRANSFER_PENALTY                 = "transferPenalty"
-	WITHDRAW_ONG                     = "withdrawOng"
+	WITHDRAW_GALA                    = "withdrawGala"
 
 	//key prefix
 	GLOBAL_PARAM    = "globalParam"
@@ -90,7 +90,7 @@ const (
 	PRECISE = 1000000
 )
 
-// candidate fee must >= 1 ONG
+// candidate fee must >= 1 Gala
 var MinCandidateFee = uint64(math.Pow(10, constants.GALA_DECIMALS))
 
 var Xi = []uint32{
@@ -120,7 +120,7 @@ func RegisterGovernanceContract(native *native.NativeService) {
 	native.Register(UNVOTE_FOR_PEER, UnVoteForPeer)
 	native.Register(WITHDRAW, Withdraw)
 	native.Register(QUIT_NODE, QuitNode)
-	native.Register(WITHDRAW_ONG, WithdrawOng)
+	native.Register(WITHDRAW_GALA, WithdrawGala)
 
 	native.Register(INIT_CONFIG, InitConfig)
 	native.Register(APPROVE_CANDIDATE, ApproveCandidate)
@@ -135,7 +135,7 @@ func RegisterGovernanceContract(native *native.NativeService) {
 	native.Register(TRANSFER_PENALTY, TransferPenalty)
 }
 
-//Init governance contract, include vbft config, global param and ontid admin.
+//Init governance contract, include vbft config, global param and Gid admin.
 func InitConfig(native *native.NativeService) ([]byte, error) {
 	configuration := new(config.VBFTConfig)
 	buf, err := serialization.ReadVarBytes(bytes.NewBuffer(native.Input))
@@ -279,7 +279,7 @@ func InitConfig(native *native.NativeService) ([]byte, error) {
 		return utils.BYTE_FALSE, errors.NewDetailErr(err, errors.ErrNoCode, "putSplitCurve, put splitCurve error!")
 	}
 
-	//init admin OntID
+	//init admin GID
 	err = appCallInitContractAdmin(native, []byte(configuration.AdminGID))
 	if err != nil {
 		return utils.BYTE_FALSE, errors.NewDetailErr(err, errors.ErrNoCode, "appCallInitContractAdmin error!")
@@ -289,9 +289,9 @@ func InitConfig(native *native.NativeService) ([]byte, error) {
 }
 
 //Register a candidate node, used by users.
-//Users can register a candidate node with a authorized ontid.
+//Users can register a candidate node with a authorized Gid.
 //Candidate node can be voted and become consensus node according to their pos.
-//Candidate node can get ong bonus according to their pos.
+//Candidate node can get gala bonus according to their pos.
 func RegisterCandidate(native *native.NativeService) ([]byte, error) {
 	err := registerCandidate(native, "transfer")
 	if err != nil {
@@ -301,9 +301,9 @@ func RegisterCandidate(native *native.NativeService) ([]byte, error) {
 }
 
 //Register a candidate node, used by contracts.
-//Contracts can register a candidate node with a authorized ontid after approving ont to governance contract before invoke this function.
+//Contracts can register a candidate node with a authorized Gid after approving ZPT to governance contract before invoke this function.
 //Candidate node can be voted and become consensus node according to their pos.
-//Candidate node can get ong bonus according to their pos.
+//Candidate node can get gala bonus according to their pos.
 func RegisterCandidateTransferFrom(native *native.NativeService) ([]byte, error) {
 	err := registerCandidate(native, "transferFrom")
 	if err != nil {
@@ -378,7 +378,7 @@ func UnRegisterCandidate(native *native.NativeService) ([]byte, error) {
 }
 
 //Approve a registered candidate node, used by admin.
-//Only approved candidate node can participate in consensus selection and get ong bonus.
+//Only approved candidate node can participate in consensus selection and get gala bonus.
 func ApproveCandidate(native *native.NativeService) ([]byte, error) {
 	params := new(ApproveCandidateParam)
 	if err := params.Deserialize(bytes.NewBuffer(native.Input)); err != nil {
@@ -492,7 +492,7 @@ func ApproveCandidate(native *native.NativeService) ([]byte, error) {
 }
 
 //Reject a registered candidate node, remove node from pool and unfreeze deposit ont, used by admin.
-//Only approved candidate node can participate in consensus selection and get ong bonus.
+//Only approved candidate node can participate in consensus selection and get gala bonus.
 func RejectCandidate(native *native.NativeService) ([]byte, error) {
 	params := new(RejectCandidateParam)
 	if err := params.Deserialize(bytes.NewBuffer(native.Input)); err != nil {
@@ -758,7 +758,7 @@ func QuitNode(native *native.NativeService) ([]byte, error) {
 	return utils.BYTE_TRUE, nil
 }
 
-//Vote for a node by depositing ONT in this governance contract, used by users
+//Vote for a node by depositing ZPT in this governance contract, used by users
 func VoteForPeer(native *native.NativeService) ([]byte, error) {
 	err := voteForPeer(native, "transfer")
 	if err != nil {
@@ -767,7 +767,7 @@ func VoteForPeer(native *native.NativeService) ([]byte, error) {
 	return utils.BYTE_TRUE, nil
 }
 
-//Vote for a node by depositing ONT in this governance contract, used by contracts
+//Vote for a node by depositing ZPT in this governance contract, used by contracts
 func VoteForPeerTransferFrom(native *native.NativeService) ([]byte, error) {
 	err := voteForPeer(native, "transferFrom")
 	if err != nil {
@@ -776,7 +776,7 @@ func VoteForPeerTransferFrom(native *native.NativeService) ([]byte, error) {
 	return utils.BYTE_TRUE, nil
 }
 
-//UnVote for a node by redeeming ONT from this governance contract
+//UnVote for a node by redeeming ZPT from this governance contract
 func UnVoteForPeer(native *native.NativeService) ([]byte, error) {
 	params := &VoteForPeerParam{
 		PeerPubkeyList: make([]string, 0),
@@ -881,7 +881,7 @@ func UnVoteForPeer(native *native.NativeService) ([]byte, error) {
 	return utils.BYTE_TRUE, nil
 }
 
-//Withdraw unfreezed ONT deposited in this governance contract.
+//Withdraw unfreezed ZPT deposited in this governance contract.
 func Withdraw(native *native.NativeService) ([]byte, error) {
 	params := &WithdrawParam{
 		PeerPubkeyList: make([]string, 0),
@@ -928,10 +928,10 @@ func Withdraw(native *native.NativeService) ([]byte, error) {
 		}
 	}
 
-	//ont transfer
+	//ZPT transfer
 	err = appCallTransferZpt(native, utils.GovernanceContractAddress, address, total)
 	if err != nil {
-		return utils.BYTE_FALSE, errors.NewDetailErr(err, errors.ErrNoCode, "appCallTransferZpt, ont transfer error!")
+		return utils.BYTE_FALSE, errors.NewDetailErr(err, errors.ErrNoCode, "appCallTransferZpt, ZPT transfer error!")
 	}
 
 	//update total stake
@@ -1183,7 +1183,7 @@ func CallSplit(native *native.NativeService) ([]byte, error) {
 	return utils.BYTE_TRUE, nil
 }
 
-//Transfer all punished ONT of a black node to a certain address
+//Transfer all punished ZPT of a black node to a certain address
 func TransferPenalty(native *native.NativeService) ([]byte, error) {
 	// get admin from database
 	adminAddress, err := global_params.GetStorageRole(native,
@@ -1212,8 +1212,8 @@ func TransferPenalty(native *native.NativeService) ([]byte, error) {
 	return utils.BYTE_TRUE, nil
 }
 
-//Withdraw unbounded ONG according to deposit ONT in this governance contract
-func WithdrawOng(native *native.NativeService) ([]byte, error) {
+//Withdraw unbounded GALA according to deposit ZPT in this governance contract
+func WithdrawGala(native *native.NativeService) ([]byte, error) {
 	param := new(WithdrawGalaParam)
 	if err := param.Deserialize(bytes.NewBuffer(native.Input)); err != nil {
 		return utils.BYTE_FALSE, errors.NewDetailErr(err, errors.ErrNoCode, "deserialize, deserialize transferPenaltyParam error!")
@@ -1223,13 +1223,13 @@ func WithdrawOng(native *native.NativeService) ([]byte, error) {
 	//check witness
 	err := utils.ValidateOwner(native, param.Address)
 	if err != nil {
-		return utils.BYTE_FALSE, errors.NewDetailErr(err, errors.ErrNoCode, "withdrawOng, checkWitness error!")
+		return utils.BYTE_FALSE, errors.NewDetailErr(err, errors.ErrNoCode, "withdrawGala, checkWitness error!")
 	}
 
-	// ont transfer to trigger unboundong
+	// ZPT transfer to trigger unboundGala
 	err = appCallTransferZpt(native, utils.GovernanceContractAddress, utils.GovernanceContractAddress, 1)
 	if err != nil {
-		return utils.BYTE_FALSE, errors.NewDetailErr(err, errors.ErrNoCode, "appCallTransferZpt, ont transfer error!")
+		return utils.BYTE_FALSE, errors.NewDetailErr(err, errors.ErrNoCode, "appCallTransferZpt, ZPT transfer error!")
 	}
 
 	totalStake, err := getTotalStake(native, contract, param.Address)
@@ -1243,7 +1243,7 @@ func WithdrawOng(native *native.NativeService) ([]byte, error) {
 	amount := utils.CalcUnbindGala(totalStake.Stake, preTimeOffset, timeOffset)
 	err = appCallTransferFromGala(native, utils.GovernanceContractAddress, utils.ZptContractAddress, totalStake.Address, amount)
 	if err != nil {
-		return utils.BYTE_FALSE, errors.NewDetailErr(err, errors.ErrNoCode, "appCallTransferFromGala, transfer from ong error!")
+		return utils.BYTE_FALSE, errors.NewDetailErr(err, errors.ErrNoCode, "appCallTransferFromGala, transfer from Gala error!")
 	}
 
 	totalStake.TimeOffset = timeOffset
