@@ -41,13 +41,13 @@ const (
 	GALA_NAME         = "GALA Token"
 	GALA_SYMBOL       = "GALA"
 	GALA_DECIMALS     = 4
-	GALA_TOTAL_SUPPLY = uint64(1000000000000000)
+	GALA_TOTAL_SUPPLY = uint64(180000000000000)
 )
 
 // zpt/gala unbound model constants
 const UNBOUND_TIME_INTERVAL = uint32(31536000)
 
-var UNBOUND_GENERATION_AMOUNT = [18]uint64{89, 89, 55, 55, 55, 34, 34, 34, 21, 21, 21, 13, 13, 13, 8, 8, 5, 5}
+var UNBOUND_GENERATION_AMOUNT = [18]uint64{890000, 890000, 550000, 550000, 550000, 340000, 340000, 340000, 210000, 210000, 210000, 130000, 130000, 130000, 80000, 80000, 50000, 50000}
 
 // the end of unbound timestamp offset from genesis block's timestamp
 var UNBOUND_DEADLINE = (func() uint32 {
@@ -59,12 +59,12 @@ var UNBOUND_DEADLINE = (func() uint32 {
 
 	numInterval := len(UNBOUND_GENERATION_AMOUNT)
 
-	if UNBOUND_GENERATION_AMOUNT[numInterval-1] != 1 ||
-		!(count-uint64(UNBOUND_TIME_INTERVAL) < ZPT_TOTAL_SUPPLY && ZPT_TOTAL_SUPPLY <= count) {
+	if UNBOUND_GENERATION_AMOUNT[numInterval-1] != 50000 ||
+		!(count-(uint64(UNBOUND_TIME_INTERVAL)*50000) < GALA_TOTAL_SUPPLY && GALA_TOTAL_SUPPLY <= count) {
 		panic("incompatible constants setting")
 	}
 
-	return UNBOUND_TIME_INTERVAL*uint32(numInterval) - uint32(count-uint64(ZPT_TOTAL_SUPPLY))
+	return UNBOUND_TIME_INTERVAL*uint32(numInterval) - uint32(count-uint64(GALA_TOTAL_SUPPLY))
 })()
 
 // multi-sig constants
