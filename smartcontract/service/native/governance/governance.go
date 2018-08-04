@@ -312,7 +312,7 @@ func RegisterCandidateTransferFrom(native *native.NativeService) ([]byte, error)
 	return utils.BYTE_TRUE, nil
 }
 
-//Unregister a registered candidate node, will remove node from pool, and unfreeze deposit ont.
+//Unregister a registered candidate node, will remove node from pool, and unfreeze deposit zpt.
 func UnRegisterCandidate(native *native.NativeService) ([]byte, error) {
 	params := new(UnRegisterCandidateParam)
 	if err := params.Deserialize(bytes.NewBuffer(native.Input)); err != nil {
@@ -491,7 +491,7 @@ func ApproveCandidate(native *native.NativeService) ([]byte, error) {
 	return utils.BYTE_TRUE, nil
 }
 
-//Reject a registered candidate node, remove node from pool and unfreeze deposit ont, used by admin.
+//Reject a registered candidate node, remove node from pool and unfreeze deposit zpt, used by admin.
 //Only approved candidate node can participate in consensus selection and get gala bonus.
 func RejectCandidate(native *native.NativeService) ([]byte, error) {
 	params := new(RejectCandidateParam)
