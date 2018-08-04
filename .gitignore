@@ -1,6 +1,5 @@
 vendor
-glide.lock
-debug
+debug*
 wallet.dat
 ZeepinChain
 Log

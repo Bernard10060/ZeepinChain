@@ -27,14 +27,14 @@ import (
 	"math/big"
 
 	base58 "github.com/itchyny/base58-go"
-	"github.com/ontio/ontology-crypto/keypair"
 	"github.com/mileschao/ZeepinChain/core/types"
+	"github.com/ontio/ontology-crypto/keypair"
 	"golang.org/x/crypto/ripemd160"
 )
 
 const (
 	SCHEME = "Gid"
-	METHOD = "Galaxy"
+	METHOD = "zpt"
 	VER    = 0x58
 )
 

@@ -23,7 +23,7 @@ import (
 	"testing"
 )
 
-var id = "Gid:Galaxy:TSS6S4Xhzt5wtvRBTm4y3QCTRqB4BnU7vT"
+var id = "Gid:zpt:TSS6S4Xhzt5wtvRBTm4y3QCTRqB4BnU7vT"
 
 func TestCreate(t *testing.T) {
 	nonce, _ := hex.DecodeString("4c6b58adc6b8c6774eee0eb07dac4e198df87aae28f8932db3982edf3ff026e4")
@@ -44,11 +44,11 @@ func TestVerify(t *testing.T) {
 	}
 
 	invalid := []string{
-		"Gid:Galaxy:",
-		"Gid:Galaxy:TSS6S4Xhzt5wtvRBTm4y3QCTRqB4BnU7vT",
+		"Gid:zpt:",
+		"Gid:zpt:TSS6S4Xhzt5wtvRBTm4y3QCTRqB4BnU7vT",
 		"TSS6S4Xhzt5wtvRBTm4y3QCTRqB4BnU7vT",
 		"Gid:else:TSS6S4Xhzt5wtvRBTm4y3QCT",
-		"Gid:Galaxy:TSS6S4Xhzt5wtvRBTm4y3QCTRqB4BnU7vt",
+		"Gid:zpt:TSS6S4Xhzt5wtvRBTm4y3QCTRqB4BnU7vt",
 	}
 
 	for _, v := range invalid {

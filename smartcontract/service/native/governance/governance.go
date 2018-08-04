@@ -164,9 +164,9 @@ func InitConfig(native *native.NativeService) ([]byte, error) {
 
 	//init globalParam
 	globalParam := &GlobalParam{
-		CandidateFee: 500000000000,
+		CandidateFee: 500000000,
 		MinInitStake: configuration.MinInitStake,
-		CandidateNum: 7 * 7,
+		CandidateNum: 51,
 		PosLimit:     20,
 		A:            40,
 		B:            60,
