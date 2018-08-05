@@ -18,6 +18,7 @@
 package main
 
 import (
+	"fmt"
 	"os"
 	"os/signal"
 	"runtime"
@@ -104,9 +105,9 @@ func startSigSvr(ctx *cli.Context) {
 	<-exit
 }
 
-/*func main() {
+func main() {
 	if err := setupSigSvr().Run(os.Args); err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
 	}
-}*/
+}

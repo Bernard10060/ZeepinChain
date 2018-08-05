@@ -24,6 +24,9 @@ sigsvr: $(SRC_FILES) abi
 	@if [ ! -d $(TOOLS) ];then mkdir -p $(TOOLS) ;fi
 	@mv sigsvr $(TOOLS)
 
+ztools: $(SRC_FILES)
+	$(GC)  $(BUILD_NODE_PAR) -o zeepinChainTools ztools.go
+
 abi: 
 	@if [ ! -d $(ABI) ];then mkdir -p $(ABI) ;fi
 	@cp $(NATIVE_ABI_SCRIPT)/*.json $(ABI)

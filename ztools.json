@@ -1,0 +1,12 @@
+{
+    "Asset": "zpt",
+    "Amount": 1000000000,
+    "Wallet": 
+    [
+        {
+            "FilePath":"",
+            "Passwd":"",
+            "Address":""
+        }
+    ]
+}
